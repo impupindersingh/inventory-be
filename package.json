@@ -1,0 +1,52 @@
+{
+  "name": "package.json",
+  "version": "1.0.0",
+  "description": "User, Role, Permission Management",
+  "main": "app/app.js",
+  "scripts": {
+    "dev": "nodemon --exec \"node -r dotenv/config app/app.js\"",
+    "start": "node app/app.js",
+    "lint-staged": "lint-staged",
+    "lint": "eslint ."
+  },
+  "pre-commit": [
+    "test",
+    "lint-staged"
+  ],
+  "lint-staged": {
+    "*.js": "eslint"
+  },
+  "author": "Pupinder Singh",
+  "dependencies": {
+    "auth0-id-generator": "0.2.0",
+    "axios": "^0.19.0",
+    "bcrypt": "5.0.1",
+    "bluebird": "^3.5.5",
+    "body-parser": "^1.19.0",
+    "celebrate": "^10.0.1",
+    "cors": "^2.8.5",
+    "date-fns": "^2.9.0",
+    "date-fns-tz": "^1.1.6",
+    "express": "^4.17.1",
+    "file-type": "^12.3.0",
+    "joi": "^13.2.0",
+    "joi-date-extensions": "^1.2.0",
+    "jsonwebtoken": "^8.5.1",
+    "mysql2": "^1.7.0",
+    "sequelize": "^5.19.2",
+    "sharp": "^0.23.0",
+    "swagger-jsdoc": "^3.3.0",
+    "swagger-ui-express": "^4.0.7",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "dotenv": "^8.0.0",
+    "eslint": "^6.1.0",
+    "lint-staged": "^8.2.1",
+    "mocha": "^6.2.0",
+    "nodemon": "^1.19.4",
+    "nyc": "^14.1.1",
+    "pre-commit": "^1.2.2"
+  }
+}
