@@ -20,4 +20,8 @@ router.route('/item-category')
     .get(getUserByOAuthToken, isAdmin,
         catchError(adminController.getItemCategory), sendResponse);
 
+router.route('/users')
+    .get(getUserByOAuthToken, isAdmin,
+        catchError(adminController.getUsers), sendResponse);
+
 module.exports = router;

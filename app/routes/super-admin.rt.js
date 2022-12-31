@@ -5,7 +5,11 @@ const superAdminController = require('../controllers/super-admin.ct');
 const { getUserByOAuthToken, isSuperAdmin } = require('../middleware/user.mw');
 const { catchError } = require('../middleware/error-handler.mw');
 const { sendResponse } = require('../middleware/send-response.mw');
-const { addUserValidator, updateUserValidator, addCatValidator, addRestaurantValidator, updateRestaurantValidator, addItemValidator, updateItemValidator } = require('../middleware/validate.mw');
+const { addUserValidator, updateUserValidator, addCatValidator, addRestaurantValidator, updateRestaurantValidator, addItemValidator, updateItemValidator, updateSuperUserValidator } = require('../middleware/validate.mw');
+
+router.route('/')
+        .put(getUserByOAuthToken, isSuperAdmin, updateSuperUserValidator,
+                catchError(superAdminController.updateSuperUser), sendResponse);
 
 // User's API
 router.route('/user')

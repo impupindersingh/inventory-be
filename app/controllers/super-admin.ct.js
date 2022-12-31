@@ -23,8 +23,29 @@ module.exports = {
     updateItem,
     getItems,
     deleteItem,
-    getOrders
+    getOrders,
+    updateSuperUser
 };
+
+async function updateSuperUser(req, res, next) {
+    try {
+        let payload = req.body;
+        let qryData = [];
+        if (payload.email) { qryData.push(`email='${payload.email}'`) }
+        if (payload.password) {
+            let password = await bcrypt.hash(payload.password, config.saltKey);
+            qryData.push(`password='${password}'`)
+        }
+        // Update user
+        let query = `UPDATE users SET ${qryData.join(', ')} WHERE id='${req.loggedInUserObj.userId}' AND type='${config.user_roles.superAdmin}';`
+        await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.UPDATE });
+
+        res.data = { message: 'success' };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
 
 // User's API
 async function addUser(req, res, next) {

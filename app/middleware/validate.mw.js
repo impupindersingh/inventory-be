@@ -96,6 +96,13 @@ let addOrderValidator = celebrate({
     })
 });
 
+let updateSuperUserValidator = celebrate({
+    body: Joi.object().keys({
+        password: Joi.string().optional(),
+        email: Joi.string().optional()
+    })
+});
+
 module.exports = {
     authenticationValidator,
     addUserValidator,
@@ -105,5 +112,6 @@ module.exports = {
     updateRestaurantValidator,
     addItemValidator,
     updateItemValidator,
-    addOrderValidator
+    addOrderValidator,
+    updateSuperUserValidator
 };

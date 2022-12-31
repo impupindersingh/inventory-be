@@ -12,7 +12,7 @@ const swaggerJsdoc = require('swagger-jsdoc');
 const { globalErrorHandler } = require('./middleware/error-handler.mw');
 
 //configs - to be moved
-const appPrefix = '/inventory/';
+const appPrefix = '/api/inventory/';
 const port = process.env.PORT || '5858';
 
 //cors
@@ -64,7 +64,7 @@ const swaggerOptions = {
 };
 const specs = swaggerJsdoc(swaggerOptions);
 specs.basePath = appPrefix;
-app.use('/inventory/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+app.use('/api/inventory/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 //listener
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);

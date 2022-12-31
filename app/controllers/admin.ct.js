@@ -6,7 +6,8 @@ const bcrypt = require('bcrypt');
 module.exports = {
     addOrder,
     getOrder,
-    getItemCategory
+    getItemCategory,
+    getUsers
 };
 
 // Orders API
@@ -56,6 +57,18 @@ async function getItemCategory(req, res, next) {
         let itemQry = `select i.id "itemId", i.name "itemName", i.unit_type "itemUnitType", i.category_id "categoryId" from items i where i.is_deleted = 0`;
         let items = await sequelize.query(itemQry, { replacements: [], type: sequelize.QueryTypes.SELECT });
         res.data = { category, items };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
+
+async function getUsers(req, res, next) {
+    try {
+        // Get Admin users
+        let userQry = `select u.id "userId", name "userName", email, type "userType" from users u where u.type = '${config.user_roles.admin}' and is_deleted = 0`;
+        let adminUsers = await sequelize.query(userQry, { replacements: [], type: sequelize.QueryTypes.SELECT });
+        res.data = { adminUsers };
     } catch (error) {
         res.error = { error: (error.response && error.response.data) ? error.response.data : error };
     }
