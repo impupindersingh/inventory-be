@@ -325,7 +325,7 @@ async function getOrders(req, res, next) {
             inner join users u on u.id = o.user_id 
             inner join admin_restaurant_assoc ara on ara.user_id = u.id 
             inner join restaurants r on r.id = ara.restaurant_id  and u.id = ara.user_id 
-            where r.id = '${req.query.restaurantId}' order by createdAt desc`;
+            where r.id = '${req.query.restaurantId}' order by o.created_at desc`;
             orders = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
         } else {
             let query = `select o.id "orderId", i.name "itemName", i.unit_type "unitType", c.name "categoryName", SUM(o.quantity) "quantity", o.created_at "createdAt" 
@@ -333,7 +333,7 @@ async function getOrders(req, res, next) {
             inner join items i on i.id = o.item_id 
             inner join category c on c.id = i.category_id 
             inner join users u on u.id = o.user_id 
-            group by i.id, CAST(o.created_at AS DATE) order by createdAt desc `;
+            group by i.id, CAST(o.created_at AS DATE) order by o.created_at desc `;
             orders = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
         }
         res.data = { orders };

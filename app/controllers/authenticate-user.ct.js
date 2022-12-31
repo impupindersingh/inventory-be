@@ -1,11 +1,7 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config');
-const { users } = require('../models/index');
+const { users, sequelize, } = require('../models/index');
 const bcrypt = require('bcrypt');
-
-const auth0_conf = config.auth0_conf;
-const auth0_api = config.auth0_api;
-const login_conf = config.login_conf;
 
 module.exports = {
     login,
@@ -54,13 +50,10 @@ async function login(req, res, next) {
 
 async function getProfile(req, res, next) {
     try {
-        const user = await users.findOne({
-            where: {
-                email: req.loggedInUserObj.email,
-                id: req.loggedInUserObj.userId
-            },
-            attributes: ['name', 'email', 'type', 'created_at']
-        });
+        let qry = `SELECT u.name, u.email, u.type, u.created_at, r.name "restaurantName", r.id "restaurantId" FROM users u
+        LEFT JOIN admin_restaurant_assoc ara on ara.user_id = u.id 
+        LEFT JOIN restaurants r on ara.restaurant_id  = r.id WHERE u.email = '${req.loggedInUserObj.email}' AND u.id = '${req.loggedInUserObj.userId}';`;
+        let user = await sequelize.query(qry, { replacements: [], type: sequelize.QueryTypes.SELECT });
         res.data = user;
     } catch (error) {
         res.error = { error };
