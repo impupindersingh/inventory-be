@@ -328,12 +328,11 @@ async function getOrders(req, res, next) {
             where r.id = '${req.query.restaurantId}' order by o.created_at desc`;
             orders = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
         } else {
-            let query = `select o.id "orderId", i.name "itemName", i.unit_type "unitType", c.name "categoryName", SUM(o.quantity) "quantity", o.created_at "createdAt" 
-            from orders o 
-            inner join items i on i.id = o.item_id 
-            inner join category c on c.id = i.category_id 
-            inner join users u on u.id = o.user_id 
-            group by i.id, CAST(o.created_at AS DATE) order by o.created_at desc `;
+            let query = `select i.name "itemName", i.unit_type "unitType", c.name "categoryName", SUM(o.quantity) "quantity", CAST(o.created_at AS DATE) "createdAt" from orders o  
+            inner join items i on i.id = o.item_id  
+            inner join category c on c.id = i.category_id  
+            inner join users u on u.id = o.user_id  
+            group by i.id, CAST(o.created_at AS DATE)`;
             orders = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
         }
         res.data = { orders };
