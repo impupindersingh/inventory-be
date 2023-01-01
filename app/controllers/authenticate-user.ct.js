@@ -14,7 +14,8 @@ async function login(req, res, next) {
         const user = await users.findOne({
             where: {
                 email: req.body.username,
-                type: req.body.type
+                type: req.body.type,
+                is_deleted: 0
             },
             attributes: ['id', 'name', 'email', 'password', 'type']
         });
