@@ -80,6 +80,10 @@ router.route('/item/:itemId')
         .delete(getUserByOAuthToken, isSuperAdmin,
                 catchError(superAdminController.deleteItem), sendResponse);
 
+router.route('/item/unit-type')
+        .get(getUserByOAuthToken, isSuperAdmin,
+                catchError(superAdminController.getItemsUnitType), sendResponse);
+
 // Orders API
 router.route('/orders')
         .get(getUserByOAuthToken, isSuperAdmin,

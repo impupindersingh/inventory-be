@@ -13,10 +13,7 @@ module.exports = {
         admin: 'ADMIN',
         superAdmin: 'SUPER-ADMIN',
     },
-    item_units: {
-        Litre: 'Litre',
-        Kilogram: 'Kilogram'
-    },
+    item_units: ['Litre', 'Kilogram', 'Boxes'],
     saltKey: 10,
     jwt: {
         secretKey: 'n*U_hOAT?O4q-7tOH&niC/y?qR#L#]bHB2k:?)qwzFu@5&l,~:s&y`{Df1}c3_<',

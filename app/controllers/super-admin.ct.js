@@ -22,6 +22,7 @@ module.exports = {
     addItem,
     updateItem,
     getItems,
+    getItemsUnitType,
     deleteItem,
     getOrders,
     updateSuperUser
@@ -293,6 +294,15 @@ async function getItems(req, res, next) {
         let items = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
 
         res.data = { items };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
+
+async function getItemsUnitType(req, res, next) {
+    try {
+        res.data = { unitType: config.item_units };
     } catch (error) {
         res.error = { error: (error.response && error.response.data) ? error.response.data : error };
     }

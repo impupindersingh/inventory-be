@@ -74,7 +74,7 @@ let addItemValidator = celebrate({
         itemName: Joi.string().required(),
         categoryId: Joi.string().required(),
         description: Joi.string().required(),
-        unitType: Joi.string().required().valid(config.item_units.Litre, config.item_units.Kilogram)
+        unitType: Joi.string().required().valid(config.item_units)
     })
 });
 
@@ -83,7 +83,7 @@ let updateItemValidator = celebrate({
         itemName: Joi.string().optional(),
         categoryId: Joi.string().optional(),
         description: Joi.string().optional(),
-        unitType: Joi.string().optional().valid(config.item_units.Litre, config.item_units.Kilogram)
+        unitType: Joi.string().optional().valid(config.item_units)
     })
 });
 
@@ -92,7 +92,7 @@ let addOrderValidator = celebrate({
         categoryId: Joi.string().required(),
         itemId: Joi.string().required(),
         quantity: Joi.string().required(),
-        unitType: Joi.string().required().valid(config.item_units.Litre, config.item_units.Kilogram)
+        unitType: Joi.string().required().valid(config.item_units)
     })
 });
 
