@@ -88,11 +88,9 @@ let updateItemValidator = celebrate({
 });
 
 let addOrderValidator = celebrate({
-    body: Joi.object().keys({
-        categoryId: Joi.string().required(),
+    body: Joi.array().items({
         itemId: Joi.string().required(),
-        quantity: Joi.string().required(),
-        unitType: Joi.string().required().valid(config.item_units)
+        quantity: Joi.string().required()
     })
 });
 

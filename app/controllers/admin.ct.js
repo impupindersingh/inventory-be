@@ -14,11 +14,15 @@ module.exports = {
 async function addOrder(req, res, next) {
     try {
         let payload = req.body;
-        // Insert Order        
-        let query = `INSERT INTO orders (id, item_id, created_at, quantity, user_id) VALUES
-        ('${uuidv4()}', '${payload.itemId}', now(), '${payload.quantity}', '${req.loggedInUserObj.userId}');`
-        await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
-
+        if (payload.length) {
+            let insertAry=[];
+            payload.forEach(ele => {
+                insertAry.push(`('${uuidv4()}', '${ele.itemId}', now(), '${ele.quantity}', '${req.loggedInUserObj.userId}')`)
+            });
+            // Insert Order        
+            let query = `INSERT INTO orders (id, item_id, created_at, quantity, user_id) VALUES ${insertAry.join(', ')};`
+            await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
+        }
         res.data = { message: 'success' };
     } catch (error) {
         res.error = { error: (error.response && error.response.data) ? error.response.data : error };

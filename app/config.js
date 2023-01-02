@@ -3,9 +3,9 @@ module.exports = {
     dbconnection: {
         //mysql
         username: 'root',
-        password: 'root',
+        password: 'Inven@321$',
         database: 'inventory',
-        host: 'localhost',
+        host: '3.96.26.3',
         dialect: 'mysql',
         port: 3306
     },
