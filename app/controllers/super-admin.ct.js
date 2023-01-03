@@ -376,7 +376,7 @@ async function updateOrderStatus(req, res, next) {
             if (boughtOrderIds.length) {
                 // Update Order        
                 let query = `UPDATE orders SET status='${config.item_status.bought}', bought_date=now() WHERE 
-                id IN (${receivedOrderIds.join(',')}) AND status = '${config.item_status.newRequest}';`
+                id IN (${boughtOrderIds.join(',')}) AND status = '${config.item_status.newRequest}';`
                 await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
             }
         }
