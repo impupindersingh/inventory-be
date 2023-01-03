@@ -5,7 +5,7 @@ const adminController = require('../controllers/admin.ct');
 const { getUserByOAuthToken, isAdmin } = require('../middleware/user.mw');
 const { catchError } = require('../middleware/error-handler.mw');
 const { sendResponse } = require('../middleware/send-response.mw');
-const { addOrderValidator } = require('../middleware/validate.mw');
+const { addOrderValidator, updateOrderStatusValidator, getOrderValidator } = require('../middleware/validate.mw');
 
 // Orders API
 router.route('/order')
@@ -13,7 +13,7 @@ router.route('/order')
         catchError(adminController.addOrder), sendResponse);
 
 router.route('/order')
-    .get(getUserByOAuthToken, isAdmin,
+    .get(getUserByOAuthToken, isAdmin, getOrderValidator,
         catchError(adminController.getOrder), sendResponse);
 
 router.route('/item-category')
@@ -23,5 +23,9 @@ router.route('/item-category')
 router.route('/users')
     .get(getUserByOAuthToken, isAdmin,
         catchError(adminController.getUsers), sendResponse);
+
+router.route('/order-status')
+    .put(getUserByOAuthToken, isAdmin, updateOrderStatusValidator,
+        catchError(adminController.updateOrderStatus), sendResponse);
 
 module.exports = router;

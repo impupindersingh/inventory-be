@@ -101,6 +101,29 @@ let updateSuperUserValidator = celebrate({
     })
 });
 
+let updateOrderStatusValidator = celebrate({
+    body: Joi.array().items({
+        orderId: Joi.string().required(),
+        status: Joi.string().required().valid(config.item_status.received)
+    })
+});
+
+let getOrderValidator = celebrate({
+    query: Joi.object().keys({
+        startDate: Joi.string().required(),
+        endDate: Joi.string().required(),
+        userId: Joi.string().optional(),
+        restaurantId: Joi.string().optional(),
+    })
+});
+
+let updateSAOrderStatusValidator = celebrate({
+    body: Joi.array().items({
+        orderId: Joi.string().required(),
+        status: Joi.string().required().valid(config.item_status.received, config.item_status.bought)
+    })
+});
+
 module.exports = {
     authenticationValidator,
     addUserValidator,
@@ -111,5 +134,8 @@ module.exports = {
     addItemValidator,
     updateItemValidator,
     addOrderValidator,
-    updateSuperUserValidator
+    updateSuperUserValidator,
+    updateOrderStatusValidator,
+    getOrderValidator,
+    updateSAOrderStatusValidator
 };

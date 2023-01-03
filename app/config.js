@@ -13,7 +13,12 @@ module.exports = {
         admin: 'ADMIN',
         superAdmin: 'SUPER-ADMIN',
     },
-    item_units: ['Litre', 'Kilogram', 'Box', 'Bucket', 'Skid', 'Lbs', 'Cans'],
+    item_units: ['Litre', 'Kilogram', 'Box', 'Bucket', 'Skid', 'Lbs', 'Cans', 'Pack', 'Bottle', 'Bag'],
+    item_status: {
+        newRequest: 'NEW-REQUEST', 
+        bought: 'BOUGHT', 
+        received: 'RECEIVED'
+    },
     saltKey: 10,
     jwt: {
         secretKey: 'n*U_hOAT?O4q-7tOH&niC/y?qR#L#]bHB2k:?)qwzFu@5&l,~:s&y`{Df1}c3_<',

@@ -25,7 +25,8 @@ module.exports = {
     getItemsUnitType,
     deleteItem,
     getOrders,
-    updateSuperUser
+    updateSuperUser,
+    updateOrderStatus
 };
 
 async function updateSuperUser(req, res, next) {
@@ -290,7 +291,7 @@ async function updateItem(req, res, next) {
 async function getItems(req, res, next) {
     try {
         let query = `SELECT i.id "itemId", i.name "itemName", i.category_id "categoryId", i.description, i.created_at "createdAt", i.unit_type "unitType", c.name "categoryname"
-        FROM items i inner join category c on c.id  = i.category_id where i.is_deleted = 0;`;
+        FROM items i inner join category c on c.id  = i.category_id where i.is_deleted = 0 order by i.name ASC;`;
         let items = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
 
         res.data = { items };
@@ -326,26 +327,60 @@ async function deleteItem(req, res, next) {
 async function getOrders(req, res, next) {
     try {
         let orders = {};
+        let startDate = `${req.query.startDate} 00:00:00`;
+        let endDate = `${req.query.endDate} 23:59:59`;
         if (req.query.restaurantId) {
             let query = `select o.id "orderId", i.name "itemName", i.unit_type "unitType", c.name "categoryName", o.quantity, u.name, u.id "userId", 
-            o.created_at "createdAt", r.name "restaurantName", r.id "restaurantId"
+            CAST(o.created_at AS DATE) "createdAt", r.name "restaurantName", r.id "restaurantId", o.status "orderStatus", o.new_request_date "newRequestDate", 
+            o.bought_date "boughtDate", o.received_date "receivedDate"
             from orders o 
             inner join items i on i.id = o.item_id 
             inner join category c on c.id = i.category_id 
             inner join users u on u.id = o.user_id 
             inner join admin_restaurant_assoc ara on ara.user_id = u.id 
             inner join restaurants r on r.id = ara.restaurant_id  and u.id = ara.user_id 
-            where r.id = '${req.query.restaurantId}' order by o.created_at desc`;
+            where r.id = '${req.query.restaurantId}' AND o.created_at between '${startDate}' AND '${endDate}' order by i.name ASC`;
             orders = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
         } else {
             let query = `select i.name "itemName", i.unit_type "unitType", c.name "categoryName", SUM(o.quantity) "quantity", CAST(o.created_at AS DATE) "createdAt" from orders o  
             inner join items i on i.id = o.item_id  
             inner join category c on c.id = i.category_id  
-            inner join users u on u.id = o.user_id  
-            group by i.id, CAST(o.created_at AS DATE)`;
+            inner join users u on u.id = o.user_id
+            where o.created_at between '${startDate}' AND '${endDate}'
+            group by i.id, CAST(o.created_at AS DATE) order by i.name ASC`;
             orders = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
         }
         res.data = { orders };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
+
+async function updateOrderStatus(req, res, next) {
+    try {
+        let payload = req.body;
+        if (payload.length) {
+            let receivedOrderIds = [];
+            let boughtOrderIds = [];
+            payload.forEach(ele => {
+                (config.item_status.received === ele.status) && receivedOrderIds.push(JSON.stringify(ele.orderId));
+                (config.item_status.bought === ele.status) && boughtOrderIds.push(JSON.stringify(ele.orderId));
+            });
+            if (receivedOrderIds.length) {
+                // Update Order        
+                let query = `UPDATE orders SET status='${config.item_status.received}', received_date=now() WHERE 
+                id IN (${receivedOrderIds.join(',')}) AND status = '${config.item_status.bought}';`
+                await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
+            }
+            if (boughtOrderIds.length) {
+                // Update Order        
+                let query = `UPDATE orders SET status='${config.item_status.bought}', bought_date=now() WHERE 
+                id IN (${receivedOrderIds.join(',')}) AND status = '${config.item_status.newRequest}';`
+                await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
+            }
+        }
+        res.data = { message: 'success' };
     } catch (error) {
         res.error = { error: (error.response && error.response.data) ? error.response.data : error };
     }

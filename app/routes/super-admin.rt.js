@@ -5,7 +5,8 @@ const superAdminController = require('../controllers/super-admin.ct');
 const { getUserByOAuthToken, isSuperAdmin } = require('../middleware/user.mw');
 const { catchError } = require('../middleware/error-handler.mw');
 const { sendResponse } = require('../middleware/send-response.mw');
-const { addUserValidator, updateUserValidator, addCatValidator, addRestaurantValidator, updateRestaurantValidator, addItemValidator, updateItemValidator, updateSuperUserValidator } = require('../middleware/validate.mw');
+const { addUserValidator, updateUserValidator, addCatValidator, addRestaurantValidator, updateRestaurantValidator, addItemValidator,
+        updateItemValidator, updateSuperUserValidator, getOrderValidator, updateSAOrderStatusValidator } = require('../middleware/validate.mw');
 
 router.route('/')
         .put(getUserByOAuthToken, isSuperAdmin, updateSuperUserValidator,
@@ -86,7 +87,10 @@ router.route('/item/unit-type')
 
 // Orders API
 router.route('/orders')
-        .get(getUserByOAuthToken, isSuperAdmin,
+        .get(getUserByOAuthToken, isSuperAdmin, getOrderValidator,
                 catchError(superAdminController.getOrders), sendResponse);
 
+router.route('/order-status')
+        .put(getUserByOAuthToken, isSuperAdmin, updateSAOrderStatusValidator,
+                catchError(superAdminController.updateOrderStatus), sendResponse);
 module.exports = router;
