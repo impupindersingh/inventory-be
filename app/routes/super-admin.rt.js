@@ -6,7 +6,7 @@ const { getUserByOAuthToken, isSuperAdmin } = require('../middleware/user.mw');
 const { catchError } = require('../middleware/error-handler.mw');
 const { sendResponse } = require('../middleware/send-response.mw');
 const { addUserValidator, updateUserValidator, addCatValidator, addRestaurantValidator, updateRestaurantValidator, addItemValidator,
-        updateItemValidator, updateSuperUserValidator, getOrderValidator, updateSAOrderStatusValidator } = require('../middleware/validate.mw');
+        updateItemValidator, updateSuperUserValidator, getOrderValidator, updateSAOrderStatusValidator, getItemHistoryValidator } = require('../middleware/validate.mw');
 
 router.route('/')
         .put(getUserByOAuthToken, isSuperAdmin, updateSuperUserValidator,
@@ -93,4 +93,9 @@ router.route('/orders')
 router.route('/order-status')
         .put(getUserByOAuthToken, isSuperAdmin, updateSAOrderStatusValidator,
                 catchError(superAdminController.updateOrderStatus), sendResponse);
+
+router.route('/item-history')
+        .get(getUserByOAuthToken, isSuperAdmin, getItemHistoryValidator,
+                catchError(superAdminController.getItemHistory), sendResponse);
+
 module.exports = router;

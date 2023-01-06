@@ -124,6 +124,13 @@ let updateSAOrderStatusValidator = celebrate({
     })
 });
 
+let getItemHistoryValidator = celebrate({
+    query: Joi.object().keys({
+        restaurantId: Joi.string().required(),
+        items: Joi.string().required()
+    })
+});
+
 module.exports = {
     authenticationValidator,
     addUserValidator,
@@ -137,5 +144,6 @@ module.exports = {
     updateSuperUserValidator,
     updateOrderStatusValidator,
     getOrderValidator,
-    updateSAOrderStatusValidator
+    updateSAOrderStatusValidator,
+    getItemHistoryValidator
 };

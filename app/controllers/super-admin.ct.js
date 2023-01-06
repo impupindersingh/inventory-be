@@ -26,7 +26,8 @@ module.exports = {
     deleteItem,
     getOrders,
     updateSuperUser,
-    updateOrderStatus
+    updateOrderStatus,
+    getItemHistory
 };
 
 async function updateSuperUser(req, res, next) {
@@ -381,6 +382,31 @@ async function updateOrderStatus(req, res, next) {
             }
         }
         res.data = { message: 'success' };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
+
+async function getItemHistory(req, res, next) {
+    try {
+        const restaurantId = req.query.restaurantId;
+        const items = req.query.items.split(',');
+        const replacements = { restaurantId, items }
+        let query = `select i.name "itemName", c.name "categoryName", SUM(o.quantity) "quantity", i.unit_type "unitType", CAST(o.created_at AS DATE) "createdAt", r.name "restaurantName"
+        from orders o 
+        inner join items i on i.id = o.item_id 
+        inner join category c on c.id = i.category_id 
+        inner join users u on u.id = o.user_id 
+        inner join admin_restaurant_assoc ara on ara.user_id = u.id 
+        inner join restaurants r on r.id = ara.restaurant_id  and u.id = ara.user_id 
+        where r.id = :restaurantId and o.item_id in (:items)
+        group by i.id, CAST(o.created_at AS DATE) order by i.name ASC`;
+        let itemHistory = await sequelize.query(query, { replacements, type: sequelize.QueryTypes.SELECT });
+        itemHistory.sort(function (a, b) {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+        res.data = { itemHistory };
     } catch (error) {
         res.error = { error: (error.response && error.response.data) ? error.response.data : error };
     }
