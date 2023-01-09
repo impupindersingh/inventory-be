@@ -44,7 +44,7 @@ async function getOrder(req, res, next) {
             inner join users u on u.id = o.user_id 
             inner join admin_restaurant_assoc ara on ara.user_id = u.id 
             inner join restaurants r on r.id = ara.restaurant_id  and u.id = ara.user_id 
-            where u.id = '${userId}' AND o.created_at between '${startDate}' AND '${endDate}' order by o.created_at desc`;
+            where u.id = '${userId}' AND o.created_at between '${startDate}' AND '${endDate}' order by (o.status = 'NEW-REQUEST') DESC, c.name ASC, i.name ASC`;
         orders = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
         res.data = { orders };
     } catch (error) {
