@@ -32,6 +32,8 @@
     "joi": "^13.2.0",
     "joi-date-extensions": "^1.2.0",
     "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.40",
     "mysql2": "^1.7.0",
     "sequelize": "^5.19.2",
     "sharp": "^0.23.0",

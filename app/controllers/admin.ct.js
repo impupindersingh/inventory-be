@@ -17,7 +17,7 @@ async function addOrder(req, res, next) {
         if (payload.length) {
             let insertAry = [];
             payload.forEach(ele => {
-                insertAry.push(`('${uuidv4()}', '${ele.itemId}', now(), '${ele.quantity}', '${req.loggedInUserObj.userId}', '${config.item_status.newRequest}', now())`)
+                insertAry.push(`('${uuidv4()}', '${ele.itemId}', '${global.nowTime}', '${ele.quantity}', '${req.loggedInUserObj.userId}', '${config.item_status.newRequest}', '${global.nowTime}')`)
             });
             // Insert Order        
             let query = `INSERT INTO orders (id, item_id, created_at, quantity, user_id, status, new_request_date) VALUES ${insertAry.join(', ')};`
@@ -90,7 +90,7 @@ async function updateOrderStatus(req, res, next) {
                 (config.item_status.received === ele.status) && orderIds.push(JSON.stringify(ele.orderId))
             });
             // Update Order        
-            let query = `UPDATE orders SET status='${config.item_status.received}', received_date=now() WHERE 
+            let query = `UPDATE orders SET status='${config.item_status.received}', received_date='${global.nowTime}' WHERE 
             id IN (${orderIds.join(',')}) 
             AND status = '${config.item_status.bought}';`
             await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });

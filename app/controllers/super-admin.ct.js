@@ -58,11 +58,11 @@ async function addUser(req, res, next) {
         let userId = uuidv4();
         // Insert user
         let query = `INSERT INTO users (id, name, email, password, created_at, type, city, state, zip, address_line_1, address_line_2) 
-        VALUES('${userId}', '${payload.name}', '${payload.email}', '${password}', now(), '${config.user_roles.admin}', '${payload.city}', '${payload.state}', '${payload.zip}', '${payload.addressLine1}', '${payload.addressLine2}');`;
+        VALUES('${userId}', '${payload.name}', '${payload.email}', '${password}', '${global.nowTime}', '${config.user_roles.admin}', '${payload.city}', '${payload.state}', '${payload.zip}', '${payload.addressLine1}', '${payload.addressLine2}');`;
         await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
 
         // Map Restaurant 
-        let query2 = `INSERT INTO admin_restaurant_assoc (id, user_id, restaurant_id, created_at) VALUES('${uuidv4()}', '${userId}', '${payload.assignedRestaurantId}', now());`;
+        let query2 = `INSERT INTO admin_restaurant_assoc (id, user_id, restaurant_id, created_at) VALUES('${uuidv4()}', '${userId}', '${payload.assignedRestaurantId}', '${global.nowTime}');`;
         await sequelize.query(query2, { replacements: [], type: sequelize.QueryTypes.INSERT });
         res.data = { message: 'success' };
     } catch (error) {
@@ -137,7 +137,7 @@ async function addCategory(req, res, next) {
     try {
         let payload = req.body;
         // Create Category
-        let query = `INSERT INTO category (id, name, created_at) VALUES('${uuidv4()}', '${payload.categoryName}', now());`;
+        let query = `INSERT INTO category (id, name, created_at) VALUES('${uuidv4()}', '${payload.categoryName}', '${global.nowTime}');`;
         await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
 
         res.data = { message: 'success' };
@@ -193,7 +193,7 @@ async function addRestaurant(req, res, next) {
         let payload = req.body;
         // Create Restaurant
         let query = `INSERT INTO restaurants (id, name, phone_number, city, state, zip, country, address_line_1, address_line_2, created_at) 
-        VALUES('${uuidv4()}', '${payload.name}', '${payload.phoneNumber}', '${payload.city}', '${payload.state}', '${payload.zip}', '${payload.country}', '${payload.addressLine1}', '${payload.addressLine2}', now());`;
+        VALUES('${uuidv4()}', '${payload.name}', '${payload.phoneNumber}', '${payload.city}', '${payload.state}', '${payload.zip}', '${payload.country}', '${payload.addressLine1}', '${payload.addressLine2}', '${global.nowTime}');`;
         await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
 
         res.data = { message: 'success' };
@@ -258,7 +258,7 @@ async function addItem(req, res, next) {
         let payload = req.body;
         // Insert Item
         let query = `INSERT INTO items (id, name, category_id, description, created_at, unit_type) 
-        VALUES('${uuidv4()}', '${payload.itemName}', '${payload.categoryId}', '${payload.description}', now(), '${payload.unitType}');`;
+        VALUES('${uuidv4()}', '${payload.itemName}', '${payload.categoryId}', '${payload.description}', '${global.nowTime}', '${payload.unitType}');`;
         await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
 
         res.data = { message: 'success' };
@@ -340,7 +340,7 @@ async function getOrders(req, res, next) {
             inner join users u on u.id = o.user_id 
             inner join admin_restaurant_assoc ara on ara.user_id = u.id 
             inner join restaurants r on r.id = ara.restaurant_id  and u.id = ara.user_id 
-            where r.id = '${req.query.restaurantId}' AND o.created_at between '${startDate}' AND '${endDate}' order by i.name ASC`;
+            where r.id = '${req.query.restaurantId}' AND o.created_at between '${startDate}' AND '${endDate}' order by (o.status = '${config.item_status.newRequest}') DESC, c.name ASC, i.name ASC`;
             orders = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
         } else {
             let query = `select i.name "itemName", i.unit_type "unitType", c.name "categoryName", SUM(o.quantity) "quantity", CAST(o.created_at AS DATE) "createdAt" from orders o  
@@ -370,13 +370,13 @@ async function updateOrderStatus(req, res, next) {
             });
             if (receivedOrderIds.length) {
                 // Update Order        
-                let query = `UPDATE orders SET status='${config.item_status.received}', received_date=now() WHERE 
+                let query = `UPDATE orders SET status='${config.item_status.received}', received_date='${global.nowTime}' WHERE 
                 id IN (${receivedOrderIds.join(',')}) AND status = '${config.item_status.bought}';`
                 await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
             }
             if (boughtOrderIds.length) {
                 // Update Order        
-                let query = `UPDATE orders SET status='${config.item_status.bought}', bought_date=now() WHERE 
+                let query = `UPDATE orders SET status='${config.item_status.bought}', bought_date='${global.nowTime}' WHERE 
                 id IN (${boughtOrderIds.join(',')}) AND status = '${config.item_status.newRequest}';`
                 await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
             }

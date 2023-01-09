@@ -7,16 +7,16 @@ module.exports = {
         database: 'inventory',
         host: '3.96.26.3',
         dialect: 'mysql',
-        port: 3306
+        port: 3306,
     },
     user_roles: {
         admin: 'ADMIN',
         superAdmin: 'SUPER-ADMIN',
     },
-    item_units: ['Litre', 'Kilogram', 'Box', 'Bucket', 'Skid', 'Lbs', 'Cans', 'Pack', 'Bottle', 'Bag'],
+    item_units: ['Litre', 'Kilogram', 'Box', 'Bucket', 'Skid', 'Lbs', 'Cans', 'Pack', 'Bottle', 'Bag', 'Crate'],
     item_status: {
-        newRequest: 'NEW-REQUEST', 
-        bought: 'BOUGHT', 
+        newRequest: 'NEW-REQUEST',
+        bought: 'BOUGHT',
         received: 'RECEIVED'
     },
     saltKey: 10,

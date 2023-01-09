@@ -1,6 +1,10 @@
 //express
 const express = require('express');
 const app = express();
+const moment = require('moment');
+const momenttz = require('moment-timezone');
+const tz = momenttz().tz('US/Eastern');
+global.nowTime = moment(tz.format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss');
 //modules
 const fs = require('fs');
 const { errors } = require('celebrate');
