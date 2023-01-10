@@ -12,6 +12,10 @@ router.route('/order')
     .post(getUserByOAuthToken, isAdmin, addOrderValidator,
         catchError(adminController.addOrder), sendResponse);
 
+router.route('/order/:orderId')
+    .delete(getUserByOAuthToken, isAdmin,
+        catchError(adminController.deleteOrder), sendResponse);
+
 router.route('/order')
     .get(getUserByOAuthToken, isAdmin, getOrderValidator,
         catchError(adminController.getOrder), sendResponse);

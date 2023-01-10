@@ -27,7 +27,8 @@ module.exports = {
     getOrders,
     updateSuperUser,
     updateOrderStatus,
-    getItemHistory
+    getItemHistory,
+    deleteOrder
 };
 
 async function updateSuperUser(req, res, next) {
@@ -407,6 +408,21 @@ async function getItemHistory(req, res, next) {
             return new Date(b.createdAt) - new Date(a.createdAt);
         });
         res.data = { itemHistory };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
+
+async function deleteOrder(req, res, next) {
+    try {
+        let orderId = req.params.orderId;
+        if (orderId) {
+            // DELETE Order        
+            let query = `DELETE FROM orders WHERE id='${orderId}' AND status = '${config.item_status.newRequest}';`
+            await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.DELETE });
+        }
+        res.data = { message: 'success' };
     } catch (error) {
         res.error = { error: (error.response && error.response.data) ? error.response.data : error };
     }

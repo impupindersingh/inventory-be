@@ -7,7 +7,8 @@ module.exports = {
     getOrder,
     getItemCategory,
     getUsers,
-    updateOrderStatus
+    updateOrderStatus,
+    deleteOrder
 };
 
 // Orders API
@@ -94,6 +95,21 @@ async function updateOrderStatus(req, res, next) {
             id IN (${orderIds.join(',')}) 
             AND status = '${config.item_status.bought}';`
             await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
+        }
+        res.data = { message: 'success' };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
+
+async function deleteOrder(req, res, next) {
+    try {
+        let orderId = req.params.orderId;
+        if (orderId) {
+            // DELETE Order        
+            let query = `DELETE FROM orders WHERE id='${orderId}' AND status = '${config.item_status.newRequest}';`
+            await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.DELETE });
         }
         res.data = { message: 'success' };
     } catch (error) {

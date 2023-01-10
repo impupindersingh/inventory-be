@@ -90,6 +90,10 @@ router.route('/orders')
         .get(getUserByOAuthToken, isSuperAdmin, getOrderValidator,
                 catchError(superAdminController.getOrders), sendResponse);
 
+router.route('/orders/:orderId')
+        .delete(getUserByOAuthToken, isSuperAdmin,
+                catchError(superAdminController.deleteOrder), sendResponse);
+
 router.route('/order-status')
         .put(getUserByOAuthToken, isSuperAdmin, updateSAOrderStatusValidator,
                 catchError(superAdminController.updateOrderStatus), sendResponse);
