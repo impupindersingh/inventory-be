@@ -39,7 +39,11 @@ async function login(req, res, next) {
         let token = await jwt.sign(userObj, config.jwt.secretKey, { expiresIn: config.jwt.accessExpiryIn });
         res.data = {
             token,
-            expiresIn: config.jwt.accessExpiryIn
+            expiresIn: config.jwt.accessExpiryIn,
+            userDetail: {
+                userId: user.id,
+                name: user.name
+            }
         };
 
     } catch (error) {
