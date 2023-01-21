@@ -5,6 +5,8 @@ const {
 const config = require('../config');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
+const moment = require('moment');
+const momenttz = require('moment-timezone');
 
 module.exports = {
     addUser,
@@ -57,13 +59,15 @@ async function addUser(req, res, next) {
         let payload = req.body;
         let password = await bcrypt.hash(payload.password, config.saltKey);
         let userId = uuidv4();
+        const tz = momenttz().tz('US/Eastern');
+        const nowTime = moment(tz.format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss');
         // Insert user
         let query = `INSERT INTO users (id, name, email, password, created_at, type, city, state, zip, address_line_1, address_line_2) 
-        VALUES('${userId}', '${payload.name}', '${payload.email}', '${password}', '${global.nowTime}', '${config.user_roles.admin}', '${payload.city}', '${payload.state}', '${payload.zip}', '${payload.addressLine1}', '${payload.addressLine2}');`;
+        VALUES('${userId}', '${payload.name}', '${payload.email}', '${password}', '${nowTime}', '${config.user_roles.admin}', '${payload.city}', '${payload.state}', '${payload.zip}', '${payload.addressLine1}', '${payload.addressLine2}');`;
         await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
 
         // Map Restaurant 
-        let query2 = `INSERT INTO admin_restaurant_assoc (id, user_id, restaurant_id, created_at) VALUES('${uuidv4()}', '${userId}', '${payload.assignedRestaurantId}', '${global.nowTime}');`;
+        let query2 = `INSERT INTO admin_restaurant_assoc (id, user_id, restaurant_id, created_at) VALUES('${uuidv4()}', '${userId}', '${payload.assignedRestaurantId}', '${nowTime}');`;
         await sequelize.query(query2, { replacements: [], type: sequelize.QueryTypes.INSERT });
         res.data = { message: 'success' };
     } catch (error) {
@@ -137,8 +141,10 @@ async function deleteUser(req, res, next) {
 async function addCategory(req, res, next) {
     try {
         let payload = req.body;
+        const tz = momenttz().tz('US/Eastern');
+        const nowTime = moment(tz.format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss');
         // Create Category
-        let query = `INSERT INTO category (id, name, created_at) VALUES('${uuidv4()}', '${payload.categoryName}', '${global.nowTime}');`;
+        let query = `INSERT INTO category (id, name, created_at) VALUES('${uuidv4()}', '${payload.categoryName}', '${nowTime}');`;
         await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
 
         res.data = { message: 'success' };
@@ -192,9 +198,11 @@ async function deleteCategory(req, res, next) {
 async function addRestaurant(req, res, next) {
     try {
         let payload = req.body;
+        const tz = momenttz().tz('US/Eastern');
+        const nowTime = moment(tz.format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss');
         // Create Restaurant
         let query = `INSERT INTO restaurants (id, name, phone_number, city, state, zip, country, address_line_1, address_line_2, created_at) 
-        VALUES('${uuidv4()}', '${payload.name}', '${payload.phoneNumber}', '${payload.city}', '${payload.state}', '${payload.zip}', '${payload.country}', '${payload.addressLine1}', '${payload.addressLine2}', '${global.nowTime}');`;
+        VALUES('${uuidv4()}', '${payload.name}', '${payload.phoneNumber}', '${payload.city}', '${payload.state}', '${payload.zip}', '${payload.country}', '${payload.addressLine1}', '${payload.addressLine2}', '${nowTime}');`;
         await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
 
         res.data = { message: 'success' };
@@ -257,9 +265,11 @@ async function deleteRestaurant(req, res, next) {
 async function addItem(req, res, next) {
     try {
         let payload = req.body;
+        const tz = momenttz().tz('US/Eastern');
+        const nowTime = moment(tz.format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss');
         // Insert Item
         let query = `INSERT INTO items (id, name, category_id, description, created_at, unit_type) 
-        VALUES('${uuidv4()}', '${payload.itemName}', '${payload.categoryId}', '${payload.description}', '${global.nowTime}', '${payload.unitType}');`;
+        VALUES('${uuidv4()}', '${payload.itemName}', '${payload.categoryId}', '${payload.description}', '${nowTime}', '${payload.unitType}');`;
         await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
 
         res.data = { message: 'success' };
@@ -365,19 +375,21 @@ async function updateOrderStatus(req, res, next) {
         if (payload.length) {
             let receivedOrderIds = [];
             let boughtOrderIds = [];
+            const tz = momenttz().tz('US/Eastern');
+            const nowTime = moment(tz.format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss');
             payload.forEach(ele => {
                 (config.item_status.received === ele.status) && receivedOrderIds.push(JSON.stringify(ele.orderId));
                 (config.item_status.bought === ele.status) && boughtOrderIds.push(JSON.stringify(ele.orderId));
             });
             if (receivedOrderIds.length) {
                 // Update Order        
-                let query = `UPDATE orders SET status='${config.item_status.received}', received_date='${global.nowTime}' WHERE 
+                let query = `UPDATE orders SET status='${config.item_status.received}', received_date='${nowTime}' WHERE 
                 id IN (${receivedOrderIds.join(',')}) AND status = '${config.item_status.bought}';`
                 await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
             }
             if (boughtOrderIds.length) {
                 // Update Order        
-                let query = `UPDATE orders SET status='${config.item_status.bought}', bought_date='${global.nowTime}' WHERE 
+                let query = `UPDATE orders SET status='${config.item_status.bought}', bought_date='${nowTime}' WHERE 
                 id IN (${boughtOrderIds.join(',')}) AND status = '${config.item_status.newRequest}';`
                 await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
             }

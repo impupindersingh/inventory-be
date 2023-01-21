@@ -1,6 +1,8 @@
 const { sequelize } = require('../models/index');
 const config = require('../config');
 const { v4: uuidv4 } = require('uuid');
+const moment = require('moment');
+const momenttz = require('moment-timezone');
 
 module.exports = {
     addOrder,
@@ -15,10 +17,12 @@ module.exports = {
 async function addOrder(req, res, next) {
     try {
         let payload = req.body;
+        const tz = momenttz().tz('US/Eastern');
+        const nowTime = moment(tz.format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss');
         if (payload.length) {
             let insertAry = [];
             payload.forEach(ele => {
-                insertAry.push(`('${uuidv4()}', '${ele.itemId}', '${global.nowTime}', '${ele.quantity}', '${req.loggedInUserObj.userId}', '${config.item_status.newRequest}', '${global.nowTime}')`)
+                insertAry.push(`('${uuidv4()}', '${ele.itemId}', '${nowTime}', '${ele.quantity}', '${req.loggedInUserObj.userId}', '${config.item_status.newRequest}', '${nowTime}')`)
             });
             // Insert Order        
             let query = `INSERT INTO orders (id, item_id, created_at, quantity, user_id, status, new_request_date) VALUES ${insertAry.join(', ')};`
@@ -85,13 +89,15 @@ async function getUsers(req, res, next) {
 async function updateOrderStatus(req, res, next) {
     try {
         let payload = req.body;
+        const tz = momenttz().tz('US/Eastern');
+        const nowTime = moment(tz.format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss');
         if (payload.length) {
             let orderIds = [];
             payload.forEach(ele => {
                 (config.item_status.received === ele.status) && orderIds.push(JSON.stringify(ele.orderId))
             });
             // Update Order        
-            let query = `UPDATE orders SET status='${config.item_status.received}', received_date='${global.nowTime}' WHERE 
+            let query = `UPDATE orders SET status='${config.item_status.received}', received_date='${nowTime}' WHERE 
             id IN (${orderIds.join(',')}) 
             AND status = '${config.item_status.bought}';`
             await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
