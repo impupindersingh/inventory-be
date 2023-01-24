@@ -10,7 +10,8 @@ module.exports = {
     getItemCategory,
     getUsers,
     updateOrderStatus,
-    deleteOrder
+    deleteOrder,
+    getOrdersAsNews
 };
 
 // Orders API
@@ -43,14 +44,21 @@ async function getOrder(req, res, next) {
         let endDate = `${req.query.endDate} 23:59:59`;
         let query = `select o.id "orderId", i.name "itemName", i.unit_type "unitType", c.name "categoryName", o.quantity, u.name, u.id "userId", 
             CAST(o.created_at AS DATE) "createdAt", r.name "restaurantName", r.id "restaurantId", o.status "orderStatus", o.new_request_date "newRequestDate", 
-            o.bought_date "boughtDate", o.received_date "receivedDate" from orders o 
+            o.bought_date "boughtDate", o.received_date "receivedDate", o.actual_quantity "receivedQty", o.note_qty "noteReceivedQty"
+            from orders o 
             inner join items i on i.id = o.item_id 
             inner join category c on c.id = i.category_id 
             inner join users u on u.id = o.user_id 
             inner join admin_restaurant_assoc ara on ara.user_id = u.id 
             inner join restaurants r on r.id = ara.restaurant_id  and u.id = ara.user_id 
-            where u.id = '${userId}' AND o.created_at between '${startDate}' AND '${endDate}' order by (o.status = 'NEW-REQUEST') DESC, c.name ASC, i.name ASC`;
+            where u.id = '${userId}' AND o.created_at between '${startDate}' AND '${endDate}' order by (o.status = '${config.item_status.newRequest}') DESC, c.name ASC, i.name ASC`;
         orders = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
+        orders.map(ele => {
+            if (ele.orderStatus === config.item_status.newRequest) {
+                delete ele.receivedQty;
+                delete ele.noteReceivedQty;
+            }
+        })
         res.data = { orders };
     } catch (error) {
         res.error = { error: (error.response && error.response.data) ? error.response.data : error };
@@ -118,6 +126,24 @@ async function deleteOrder(req, res, next) {
             await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.DELETE });
         }
         res.data = { message: 'success' };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
+
+async function getOrdersAsNews(req, res, next) {
+    try {
+        let ordersNews = {};
+        let userId = req.loggedInUserObj.userId;
+        if(userId) {
+        let query = `select COUNT(CAST(o.created_at AS DATE)) as "orderPendingCount", CAST(o.created_at AS DATE) "date"
+        from orders o 
+        inner join users u on u.id = o.user_id 
+        where u.id = '${userId}' AND o.status='${config.item_status.newRequest}' group by CAST(o.created_at AS DATE) order by CAST(o.created_at AS DATE) DESC`;
+        ordersNews = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
+        }
+        res.data = { ordersNews };
     } catch (error) {
         res.error = { error: (error.response && error.response.data) ? error.response.data : error };
     }

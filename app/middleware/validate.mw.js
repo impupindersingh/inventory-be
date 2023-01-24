@@ -120,7 +120,9 @@ let getOrderValidator = celebrate({
 let updateSAOrderStatusValidator = celebrate({
     body: Joi.array().items({
         orderId: Joi.string().required(),
-        status: Joi.string().required().valid(config.item_status.received, config.item_status.bought)
+        status: Joi.string().required().valid(config.item_status.bought),
+        acceptedQty: Joi.string().required(),
+        note: Joi.string().optional(),
     })
 });
 

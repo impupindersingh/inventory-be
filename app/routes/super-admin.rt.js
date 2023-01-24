@@ -102,4 +102,9 @@ router.route('/item-history')
         .get(getUserByOAuthToken, isSuperAdmin, getItemHistoryValidator,
                 catchError(superAdminController.getItemHistory), sendResponse);
 
+// News Bulletin for order
+router.route('/orders-as-news')
+        .get(getUserByOAuthToken, isSuperAdmin,
+                catchError(superAdminController.getOrdersAsNews), sendResponse);
+
 module.exports = router;

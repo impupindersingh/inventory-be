@@ -32,4 +32,8 @@ router.route('/order-status')
     .put(getUserByOAuthToken, isAdmin, updateOrderStatusValidator,
         catchError(adminController.updateOrderStatus), sendResponse);
 
+// News Bulletin for order
+router.route('/orders-as-news')
+        .get(getUserByOAuthToken, isAdmin,
+                catchError(adminController.getOrdersAsNews), sendResponse);
 module.exports = router;
