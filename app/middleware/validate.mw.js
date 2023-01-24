@@ -73,7 +73,7 @@ let addItemValidator = celebrate({
     body: Joi.object().keys({
         itemName: Joi.string().required(),
         categoryId: Joi.string().required(),
-        description: Joi.string().required(),
+        description: Joi.string().optional(),
         unitType: Joi.string().required().valid(config.item_units)
     })
 });

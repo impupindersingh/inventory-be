@@ -355,7 +355,7 @@ async function getOrders(req, res, next) {
             where r.id = '${req.query.restaurantId}' AND o.created_at between '${startDate}' AND '${endDate}' order by (o.status = '${config.item_status.newRequest}') DESC, c.name ASC, i.name ASC`;
             orders = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
             orders.map(ele => {
-                if(ele.orderStatus !== config.item_status.bought) {
+                if (ele.orderStatus === config.item_status.newRequest) {
                     delete ele.receivedQty;
                     delete ele.noteReceivedQty;
                 }
@@ -387,7 +387,7 @@ async function updateOrderStatus(req, res, next) {
             payload.forEach(ele => {
                 (config.item_status.received === ele.status) && receivedOrderIds.push(JSON.stringify(ele.orderId));
                 if (config.item_status.bought === ele.status) {
-                    boughtOrderIds.push(sequelize.query(`UPDATE orders SET status='${config.item_status.bought}', bought_date='${nowTime}', actual_quantity='${ele.acceptedQty}', note_qty='${ele.note}'  WHERE id='${ele.orderId}' AND status = '${config.item_status.newRequest}';`, { replacements: [], type: sequelize.QueryTypes.UPDATE }));                     
+                    boughtOrderIds.push(sequelize.query(`UPDATE orders SET status='${config.item_status.bought}', bought_date='${nowTime}', actual_quantity='${ele.acceptedQty}', note_qty='${ele.note}'  WHERE id='${ele.orderId}' AND status = '${config.item_status.newRequest}';`, { replacements: [], type: sequelize.QueryTypes.UPDATE }));
                 }
             });
             if (receivedOrderIds.length) {
