@@ -13,7 +13,7 @@ module.exports = {
         admin: 'ADMIN',
         superAdmin: 'SUPER-ADMIN',
     },
-    item_units: ['Litre', 'Kilogram', 'Box', 'Bucket', 'Skid', 'Lbs', 'Cans', 'Pack', 'Bottle', 'Bag', 'Crate'],
+    item_units: ['Litre', 'Kilogram', 'Box', 'Bucket', 'Skid', 'Lbs', 'Cans', 'Pack', 'Bottle', 'Bag', 'Crate','Unit'],
     item_status: {
         newRequest: 'NEW-REQUEST',
         bought: 'BOUGHT',
