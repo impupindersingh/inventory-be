@@ -193,6 +193,7 @@ async function getTransferItems(req, res, next) {
         orders.forEach(a => {
             if (typeof transferOrders[a.id] === 'undefined') {
                 transferOrders[a.id] = {};
+                transferOrders[a.id].transferOrderedItemId = a.id;
                 transferOrders[a.id].itemName = a.itemName;
                 transferOrders[a.id].actualQuantity = parseInt(a.actualQuantity);
                 transferOrders[a.id].totalSold = 0;
