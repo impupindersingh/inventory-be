@@ -13,7 +13,7 @@ module.exports = {
         admin: 'ADMIN',
         superAdmin: 'SUPER-ADMIN',
     },
-    item_units: ['Litre', 'Kilogram', 'Box', 'Bucket', 'Skid', 'Lbs', 'Cans', 'Pack', 'Bottle', 'Bag', 'Crate','Unit'],
+    item_units: ['Litre', 'Kilogram', 'Box', 'Bucket', 'Skid', 'Lbs', 'Cans', 'Pack', 'Bottle', 'Bag', 'Crate', 'Unit'],
     item_status: {
         newRequest: 'NEW-REQUEST',
         bought: 'BOUGHT',
@@ -25,3 +25,4 @@ module.exports = {
         accessExpiryIn: 60 * 60
     }
 };
+

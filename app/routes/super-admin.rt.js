@@ -6,7 +6,8 @@ const { getUserByOAuthToken, isSuperAdmin } = require('../middleware/user.mw');
 const { catchError } = require('../middleware/error-handler.mw');
 const { sendResponse } = require('../middleware/send-response.mw');
 const { addUserValidator, updateUserValidator, addCatValidator, addRestaurantValidator, updateRestaurantValidator, addItemValidator,
-        updateItemValidator, updateSuperUserValidator, getOrderValidator, updateSAOrderStatusValidator, getItemHistoryValidator } = require('../middleware/validate.mw');
+        updateItemValidator, updateSuperUserValidator, getOrderValidator, updateSAOrderStatusValidator, getItemHistoryValidator, addTransferItemValidator,
+        updateTransferItemValidator, addTransferOrderValidator } = require('../middleware/validate.mw');
 
 router.route('/')
         .put(getUserByOAuthToken, isSuperAdmin, updateSuperUserValidator,
@@ -106,5 +107,36 @@ router.route('/item-history')
 router.route('/orders-as-news')
         .get(getUserByOAuthToken, isSuperAdmin,
                 catchError(superAdminController.getOrdersAsNews), sendResponse);
+
+/****
+ * 
+ * 
+ Transfer Item Module
+ * 
+ * 
+ ****/
+router.route('/transfer/item')
+        .post(getUserByOAuthToken, isSuperAdmin, addTransferItemValidator,
+                catchError(superAdminController.addTransferItem), sendResponse);
+
+router.route('/transfer/item/:itemId')
+        .put(getUserByOAuthToken, isSuperAdmin, updateTransferItemValidator,
+                catchError(superAdminController.updateTransferItem), sendResponse);
+
+router.route('/transfer/item')
+        .get(getUserByOAuthToken, isSuperAdmin,
+                catchError(superAdminController.getTransferItems), sendResponse);
+
+router.route('/transfer/item/:itemId')
+        .delete(getUserByOAuthToken, isSuperAdmin,
+                catchError(superAdminController.deleteTransferItem), sendResponse);
+
+router.route('/transfer/order')
+        .post(getUserByOAuthToken, isSuperAdmin, addTransferOrderValidator,
+                catchError(superAdminController.addTransferOrder), sendResponse);
+
+router.route('/transfer/transfer-items')
+        .get(getUserByOAuthToken, isSuperAdmin,
+                catchError(superAdminController.getTransferItems), sendResponse);
 
 module.exports = router;

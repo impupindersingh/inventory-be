@@ -31,7 +31,13 @@ module.exports = {
     updateOrderStatus,
     getItemHistory,
     deleteOrder,
-    getOrdersAsNews
+    getOrdersAsNews,
+    addTransferItem,
+    updateTransferItem,
+    getTransferItems,
+    deleteTransferItem,
+    addTransferOrder,
+    getTransferItems
 };
 
 async function updateSuperUser(req, res, next) {
@@ -462,6 +468,134 @@ async function getOrdersAsNews(req, res, next) {
             ordersNews = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
         }
         res.data = { ordersNews };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
+
+/****
+ * 
+ * 
+ Transfer Item Module
+ * 
+ * 
+ ****/
+
+async function addTransferItem(req, res, next) {
+    try {
+        let payload = req.body;
+        const tz = momenttz().tz('US/Eastern');
+        const nowTime = moment(tz.format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss');
+        // Insert Item
+        let query = `INSERT INTO transfer_items (id, name, created_at, unit_type) 
+        VALUES('${uuidv4()}', '${payload.itemName}', '${nowTime}', '${payload.unitType}');`;
+        await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
+
+        res.data = { message: 'success' };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
+
+async function updateTransferItem(req, res, next) {
+    try {
+        let payload = req.body;
+        let itemId = req.params.itemId;
+        let qryData = [];
+        if (payload.itemName) { qryData.push(`name='${payload.itemName}'`) }
+        if (payload.unitType) { qryData.push(`unit_type='${payload.unitType}'`) }
+
+        // Update user
+        let query = `UPDATE transfer_items SET ${qryData.join(', ')} WHERE id='${itemId}';`
+        await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.UPDATE });
+
+        res.data = { message: 'success' };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
+
+async function getTransferItems(req, res, next) {
+    try {
+        let query = `SELECT i.id "itemId", i.name "itemName", i.created_at "createdAt", i.unit_type "unitType"
+        FROM transfer_items i where i.is_deleted = 0 order by i.name ASC;`;
+        let transferItems = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
+
+        res.data = { transferItems };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
+
+async function deleteTransferItem(req, res, next) {
+    try {
+        let itemId = req.params.itemId;
+        // Delete user
+        let query = `UPDATE transfer_items SET is_deleted = 1 WHERE id='${itemId}';`
+        await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.UPDATE });
+        res.data = { message: 'deleted successfully' };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
+
+async function addTransferOrder(req, res, next) {
+    try {
+        let payload = req.body;
+        if (payload.transferItems.length) {
+            let insertAry = [];
+            payload.transferItems.forEach(ele => {
+                insertAry.push(`('${uuidv4()}', '${ele.transferItemId}', '${payload.restaurantId}', '${ele.actualQuantity}', '${payload.date}')`)
+            });
+            // Insert Order        
+            let query = `INSERT INTO transfer_order (id, transfer_item_id, restaurant_id, actual_quantity, created_at) VALUES ${insertAry.join(', ')};`
+            await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
+        }
+        res.data = { message: 'success' };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
+
+async function getTransferItems(req, res, next) {
+    try {
+        let startDate = `${req.query.date} 00:00:00`;
+        let endDate = `${req.query.date} 23:59:59`;
+        let rId = req.query.restaurantId;
+        let query = `SELECT to2.id, ti.name "itemName", to2.actual_quantity "actualQuantity", toit.quantity "trackQuantity", 
+        toit.order_date_time "orderDateTime" from transfer_order to2
+        inner join transfer_ordered_item_track toit ON to2.id = toit.transfer_order_id 
+        INNER JOIN transfer_items ti on to2.transfer_item_id = ti.id 
+        INNER join restaurants r on to2.restaurant_id = r.id 
+        where to2.restaurant_id = '${rId}' and to2.created_at between '${startDate}' AND '${endDate}' order by toit.order_date_time DESC`;
+        let orders = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
+
+        let transferOrders = {};
+        orders.forEach(a => {
+            if (typeof transferOrders[a.id] === 'undefined') {
+                transferOrders[a.id] = {};
+                transferOrders[a.id].itemName = a.itemName;
+                transferOrders[a.id].actualQuantity = parseInt(a.actualQuantity);
+                transferOrders[a.id].totalSold = 0;
+                transferOrders[a.id].inventory = [];
+            }
+            transferOrders[a.id].inventory.push({
+                trackQuantity: parseInt(a.trackQuantity),
+                orderDateTime: a.orderDateTime
+            });
+            transferOrders[a.id].totalSold = parseInt(transferOrders[a.id].totalSold) + parseInt(a.trackQuantity)
+        });
+
+        let transferItems = Object.keys(transferOrders).map(ele => {
+            return transferOrders[ele];
+        });
+        res.data = { transferItems };
     } catch (error) {
         res.error = { error: (error.response && error.response.data) ? error.response.data : error };
     }

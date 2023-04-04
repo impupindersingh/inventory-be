@@ -133,6 +133,38 @@ let getItemHistoryValidator = celebrate({
     })
 });
 
+let addTransferItemValidator = celebrate({
+    body: Joi.object().keys({
+        itemName: Joi.string().required(),
+        unitType: Joi.string().required().valid(config.item_units)
+    })
+});
+
+let updateTransferItemValidator = celebrate({
+    body: Joi.object().keys({
+        itemName: Joi.string().optional(),
+        unitType: Joi.string().optional().valid(config.item_units)
+    })
+});
+
+let addTransferOrderValidator = celebrate({
+    body: Joi.object().keys({
+        restaurantId: Joi.string().required(),
+        date: Joi.string().required(),
+        transferItems: Joi.array().items({
+            transferItemId: Joi.string().required(),
+            actualQuantity: Joi.string().required()
+        }).min(1).required(),
+    })
+});
+
+let updateInventoryValidator = celebrate({
+    body: Joi.object().keys({
+        transferOrderedItemId: Joi.string().required(),
+        quantity: Joi.string().required()
+    })
+});
+
 module.exports = {
     authenticationValidator,
     addUserValidator,
@@ -147,5 +179,9 @@ module.exports = {
     updateOrderStatusValidator,
     getOrderValidator,
     updateSAOrderStatusValidator,
-    getItemHistoryValidator
+    getItemHistoryValidator,
+    addTransferItemValidator,
+    updateTransferItemValidator,
+    addTransferOrderValidator,
+    updateInventoryValidator
 };

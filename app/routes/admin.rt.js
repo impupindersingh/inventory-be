@@ -5,7 +5,7 @@ const adminController = require('../controllers/admin.ct');
 const { getUserByOAuthToken, isAdmin } = require('../middleware/user.mw');
 const { catchError } = require('../middleware/error-handler.mw');
 const { sendResponse } = require('../middleware/send-response.mw');
-const { addOrderValidator, updateOrderStatusValidator, getOrderValidator } = require('../middleware/validate.mw');
+const { addOrderValidator, updateOrderStatusValidator, getOrderValidator, updateInventoryValidator } = require('../middleware/validate.mw');
 
 // Orders API
 router.route('/order')
@@ -34,6 +34,22 @@ router.route('/order-status')
 
 // News Bulletin for order
 router.route('/orders-as-news')
-        .get(getUserByOAuthToken, isAdmin,
-                catchError(adminController.getOrdersAsNews), sendResponse);
+    .get(getUserByOAuthToken, isAdmin,
+        catchError(adminController.getOrdersAsNews), sendResponse);
+
+/****
+* 
+* 
+Transfer Item Module
+* 
+* 
+****/
+router.route('/transfer/transfer-items')
+    .get(getUserByOAuthToken, isAdmin,
+        catchError(adminController.getTransferItems), sendResponse);
+
+router.route('/transfer/inventory')
+    .put(getUserByOAuthToken, isAdmin, updateInventoryValidator,
+        catchError(adminController.updateInventory), sendResponse);
+
 module.exports = router;
