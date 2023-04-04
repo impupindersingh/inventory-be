@@ -137,6 +137,6 @@ router.route('/transfer/order')
 
 router.route('/transfer/transfer-items')
         .get(getUserByOAuthToken, isSuperAdmin,
-                catchError(superAdminController.getTransferItems), sendResponse);
+                catchError(superAdminController.getOrderedTransferItems), sendResponse);
 
 module.exports = router;

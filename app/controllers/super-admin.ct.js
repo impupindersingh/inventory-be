@@ -37,7 +37,7 @@ module.exports = {
     getTransferItems,
     deleteTransferItem,
     addTransferOrder,
-    getTransferItems
+    getOrderedTransferItems
 };
 
 async function updateSuperUser(req, res, next) {
@@ -563,7 +563,7 @@ async function addTransferOrder(req, res, next) {
     next();
 }
 
-async function getTransferItems(req, res, next) {
+async function getOrderedTransferItems(req, res, next) {
     try {
         let startDate = `${req.query.date} 00:00:00`;
         let endDate = `${req.query.date} 23:59:59`;
