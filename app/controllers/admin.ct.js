@@ -166,7 +166,7 @@ async function updateInventory(req, res, next) {
         const tz = momenttz().tz('US/Eastern');
         const nowTime = moment(tz.format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss');
         if (payload) {
-            let query = `INSERT INTO transfer_ordered_item_track (id, transfer_order_id, quantity, order_date_time) VALUES ('${uuidv4()}', '${payload.transferOrderedItemId}', '${payload.quantity}', '${nowTime}');`
+            let query = `INSERT INTO transfer_ordered_item_track (id, transfer_order_id, quantity, order_date_time, user_id) VALUES ('${uuidv4()}', '${payload.transferOrderedItemId}', '${payload.quantity}', '${nowTime}', '${req.loggedInUserObj.userId}');`
             await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
         }
         res.data = { message: 'success' };
@@ -182,10 +182,11 @@ async function getTransferItems(req, res, next) {
         let endDate = `${req.query.date} 23:59:59`;
         let rId = req.query.restaurantId;
         let query = `SELECT to2.id, ti.name "itemName", to2.actual_quantity "actualQuantity", toit.quantity "trackQuantity", 
-        toit.order_date_time "orderDateTime" from transfer_order to2
+        toit.order_date_time "orderDateTime", u.name "userName" from transfer_order to2
         left join transfer_ordered_item_track toit ON to2.id = toit.transfer_order_id 
         INNER JOIN transfer_items ti on to2.transfer_item_id = ti.id 
         INNER join restaurants r on to2.restaurant_id = r.id 
+        LEFT JOIN users u on u.id = toit.user_id 
         where to2.restaurant_id = '${rId}' and to2.created_at between '${startDate}' AND '${endDate}' order by toit.order_date_time DESC`;
         let orders = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
 
@@ -203,7 +204,8 @@ async function getTransferItems(req, res, next) {
             if (a.trackQuantity) {
                 transferOrders[a.id].inventory.push({
                     trackQuantity: parseInt(a.trackQuantity),
-                    orderDateTime: a.orderDateTime
+                    orderDateTime: a.orderDateTime,
+                    userName: a.userName
                 });
                 transferOrders[a.id].totalSold = parseInt(transferOrders[a.id].totalSold) + parseInt(a.trackQuantity);
             }
