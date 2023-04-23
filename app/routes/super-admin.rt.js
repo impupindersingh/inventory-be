@@ -139,4 +139,12 @@ router.route('/transfer/transfer-items')
         .get(getUserByOAuthToken, isSuperAdmin,
                 catchError(superAdminController.getOrderedTransferItems), sendResponse);
 
+router.route('/transfer/stock-out')
+        .get(getUserByOAuthToken, isSuperAdmin,
+                catchError(superAdminController.getStockOut), sendResponse);
+
+router.route('/transfer/stock-consumed')
+        .get(getUserByOAuthToken, isSuperAdmin,
+                catchError(superAdminController.getStockConsumed), sendResponse);
+
 module.exports = router;

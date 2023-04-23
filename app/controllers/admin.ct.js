@@ -13,7 +13,9 @@ module.exports = {
     deleteOrder,
     getOrdersAsNews,
     updateInventory,
-    getTransferItems
+    getTransferItems,
+    getStockIn,
+    getStockOut
 };
 
 // Orders API
@@ -166,7 +168,8 @@ async function updateInventory(req, res, next) {
         const tz = momenttz().tz('US/Eastern');
         const nowTime = moment(tz.format('YYYY-MM-DD HH:mm:ss')).format('YYYY-MM-DD HH:mm:ss');
         if (payload) {
-            let query = `INSERT INTO transfer_ordered_item_track (id, transfer_order_id, quantity, order_date_time, user_id) VALUES ('${uuidv4()}', '${payload.transferOrderedItemId}', '${payload.quantity}', '${nowTime}', '${req.loggedInUserObj.userId}');`
+            let query = `INSERT INTO transfer_ordered_item_track (id, transfer_item_id, quantity, order_date_time, user_id, restaurant_id) VALUES 
+            ('${uuidv4()}', '${payload.itemId}', '${payload.quantity}', '${nowTime}', '${req.loggedInUserObj.userId}', '${payload.restaurantId}');`
             await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.INSERT });
         }
         res.data = { message: 'success' };
@@ -178,43 +181,77 @@ async function updateInventory(req, res, next) {
 
 async function getTransferItems(req, res, next) {
     try {
-        let startDate = `${req.query.date} 00:00:00`;
-        let endDate = `${req.query.date} 23:59:59`;
         let rId = req.query.restaurantId;
-        let query = `SELECT to2.id, ti.name "itemName", to2.actual_quantity "actualQuantity", toit.quantity "trackQuantity", 
-        toit.order_date_time "orderDateTime", u.name "userName" from transfer_order to2
-        left join transfer_ordered_item_track toit ON to2.id = toit.transfer_order_id 
-        INNER JOIN transfer_items ti on to2.transfer_item_id = ti.id 
-        INNER join restaurants r on to2.restaurant_id = r.id 
-        LEFT JOIN users u on u.id = toit.user_id 
-        where to2.restaurant_id = '${rId}' and to2.created_at between '${startDate}' AND '${endDate}' order by toit.order_date_time DESC`;
-        let orders = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
+        let query = `SELECT ti.id "itemId", SUM(to2.actual_quantity) "totalStockIn"
+        from transfer_items ti
+        INNER JOIN transfer_order to2  on to2.transfer_item_id = ti.id
+        INNER join restaurants r on to2.restaurant_id = r.id  
+        where to2.restaurant_id = '${rId}' GROUP by ti.id ORDER by ti.name ASC`;
+        let transferItems = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
 
-        let transferOrders = {};
-        orders.forEach(a => {
-            if (typeof transferOrders[a.id] === 'undefined') {
-                transferOrders[a.id] = {};
-                transferOrders[a.id].transferOrderedItemId = a.id;
-                transferOrders[a.id].itemName = a.itemName;
-                transferOrders[a.id].actualQuantity = parseInt(a.actualQuantity);
-                transferOrders[a.id].totalSold = 0;
-                transferOrders[a.id].inventory = [];
-            }
+        let itemIds = transferItems.map(ele => ele.itemId);
+        let query2 = `SELECT toit.transfer_item_id  "itemId", SUM(toit.quantity) "totalInStock"
+        from transfer_ordered_item_track toit WHERE 
+        toit.transfer_item_id in ('${itemIds.join("','")}') AND toit.restaurant_id = '${rId}'
+        GROUP by toit.transfer_item_id `
+        let transferTrackItems = await sequelize.query(query2, { replacements: [], type: sequelize.QueryTypes.SELECT });
 
-            if (a.trackQuantity) {
-                transferOrders[a.id].inventory.push({
-                    trackQuantity: parseInt(a.trackQuantity),
-                    orderDateTime: a.orderDateTime,
-                    userName: a.userName
-                });
-                transferOrders[a.id].totalSold = parseInt(transferOrders[a.id].totalSold) + parseInt(a.trackQuantity);
-            }
+
+        let query3 = 'SELECT ti.id "itemId", ti.unit_type "unitType", ti.name  FROM transfer_items ti where is_deleted = 0';
+        let items = await sequelize.query(query3, { replacements: [], type: sequelize.QueryTypes.SELECT });
+
+        items.map(ele => {
+            let data = transferItems.find(x => x.itemId === ele.itemId);
+            ele.totalStockIn = (data) ? data.totalStockIn : 0;
+            let data2 = transferTrackItems.find(x => x.itemId === ele.itemId);
+            ele.remainingInStock = (data && data2) ? (data.totalStockIn - data2.totalInStock) : 0;
         });
 
-        let transferItems = Object.keys(transferOrders).map(ele => {
-            return transferOrders[ele];
-        });
-        res.data = { transferItems };
+        res.data = { items };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
+
+async function getStockIn(req, res, next) {
+    try {
+        let rId = req.query.restaurantId;
+        let itemId = req.query.itemId;
+        let startDate = `${req.query.startDate} 00:00:00`;
+        let endDate = `${req.query.endDate} 23:59:59`;
+        let query = `SELECT ti.id "itemId", ti.name "itemName", to2.actual_quantity "stockIn", to2.created_at "date"
+        from transfer_order to2 
+        INNER JOIN transfer_items ti  on to2.transfer_item_id = ti.id
+        INNER join restaurants r on to2.restaurant_id = r.id  
+        where to2.restaurant_id = '${rId}' AND ti.id ='${itemId}' 
+        AND to2.created_at BETWEEN '${startDate}' AND '${endDate}'
+        ORDER by to2.created_at DESC`;
+        let stockIn = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
+        res.data = { stockIn };
+    } catch (error) {
+        res.error = { error: (error.response && error.response.data) ? error.response.data : error };
+    }
+    next();
+}
+
+async function getStockOut(req, res, next) {
+    try {
+        let rId = req.query.restaurantId;
+        let itemId = req.query.itemId;
+        let startDate = `${req.query.startDate} 00:00:00`;
+        let endDate = `${req.query.endDate} 23:59:59`;
+        let query = `select ti.id "itemId", ti.name "itemName", toit.quantity "stockOut", toit.order_date_time "date", u.name  
+        FROM transfer_ordered_item_track toit
+        INNER JOIN transfer_items ti  on toit.transfer_item_id  = ti.id
+        INNER join restaurants r on toit.restaurant_id = r.id  
+        INNER join users u on u.id = toit.user_id 
+        where toit.restaurant_id = '${rId}' AND ti.id ='${itemId}' 
+        AND toit.order_date_time BETWEEN '${startDate}' AND '${endDate}'
+        ORDER by toit.order_date_time DESC`;
+
+        let stockOut = await sequelize.query(query, { replacements: [], type: sequelize.QueryTypes.SELECT });
+        res.data = { stockOut };
     } catch (error) {
         res.error = { error: (error.response && error.response.data) ? error.response.data : error };
     }

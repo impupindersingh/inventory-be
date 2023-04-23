@@ -52,4 +52,12 @@ router.route('/transfer/inventory')
     .put(getUserByOAuthToken, isAdmin, updateInventoryValidator,
         catchError(adminController.updateInventory), sendResponse);
 
+router.route('/transfer/stock-in')
+    .get(getUserByOAuthToken, isAdmin,
+        catchError(adminController.getStockIn), sendResponse);
+
+router.route('/transfer/stock-out')
+    .get(getUserByOAuthToken, isAdmin,
+        catchError(adminController.getStockOut), sendResponse);
+
 module.exports = router;

@@ -150,7 +150,6 @@ let updateTransferItemValidator = celebrate({
 let addTransferOrderValidator = celebrate({
     body: Joi.object().keys({
         restaurantId: Joi.string().required(),
-        date: Joi.string().required(),
         transferItems: Joi.array().items({
             transferItemId: Joi.string().required(),
             actualQuantity: Joi.string().required()
@@ -160,8 +159,9 @@ let addTransferOrderValidator = celebrate({
 
 let updateInventoryValidator = celebrate({
     body: Joi.object().keys({
-        transferOrderedItemId: Joi.string().required(),
-        quantity: Joi.string().required()
+        itemId: Joi.string().required(),
+        quantity: Joi.string().required(),
+        restaurantId: Joi.string().required()
     })
 });
 
