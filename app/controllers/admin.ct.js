@@ -204,7 +204,14 @@ async function getTransferItems(req, res, next) {
             let data = transferItems.find(x => x.itemId === ele.itemId);
             ele.totalStockIn = (data) ? data.totalStockIn : 0;
             let data2 = transferTrackItems.find(x => x.itemId === ele.itemId);
-            ele.remainingInStock = (data && data2) ? (data.totalStockIn - data2.totalInStock) : 0;
+            if (data) {
+                ele.remainingInStock = data.totalStockIn;
+                if (data2) {
+                    ele.remainingInStock = data.totalStockIn - data2.totalInStock;
+                }
+            } else {
+                ele.remainingInStock = 0;
+            }
         });
 
         res.data = { items };
